@@ -20,41 +20,41 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y git build-essential
     
-    - name: Download and Setup PocketBook SDK
+    - name: Clone PocketBook SDK
       run: |
-        # Clone official SDK repository
-        git clone --depth 1 --branch 5.19 https://github.com/pocketbook/SDK_6.3.0.git /tmp/SDK_6.3.0
-        
-        # Copy SDK-B288 to system directories
-        sudo cp -r /tmp/SDK_6.3.0/SDK-B288/* /usr/
-        
-        # Verify installation
-        ls -la /usr/bin/arm-obreey-linux-gnueabi-gcc || echo "GCC not found"
-        ls -la /usr/arm-obreey-linux-gnueabi/sysroot/usr/include/inkview.h || echo "inkview.h not found"
+        mkdir -p SDK
+        cd SDK
+        git clone --depth 1 --branch 5.19 https://github.com/pocketbook/SDK_6.3.0.git
     
-    - name: Build application
+    - name: Setup SDK environment
       run: |
-        /usr/bin/arm-obreey-linux-gnueabi-gcc \
-          -Wall -O2 \
-          -I/usr/arm-obreey-linux-gnueabi/sysroot/usr/include \
-          main.c \
-          -o PocketbookCompanion.app \
-          -L/usr/arm-obreey-linux-gnueabi/sysroot/usr/lib \
-          -linkview -lfreetype -lz -lpthread
-        
-        /usr/bin/arm-obreey-linux-gnueabi-strip PocketbookCompanion.app
+        sudo ln -sf /usr/lib/x86_64-linux-gnu/libmpfr.so.6 /usr/lib/x86_64-linux-gnu/libmpfr.so.4 || true
+        sudo ln -sf /usr/lib/x86_64-linux-gnu/libgmp.so.10 /usr/lib/x86_64-linux-gnu/libgmp.so.3 || true
+        sudo ldconfig
+    
+    - name: Create build directory
+      run: mkdir -p build
+    
+    - name: Configure CMake
+      run: |
+        cd build
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=../toolchain.cmake
+    
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --config Release
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: PocketbookCompanion
-        path: PocketbookCompanion.app
+        name: calibre-companion
+        path: build/calibre-companion.app
         
-    - name: Create Release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    - name: Create release on tag
+      if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: v${{ github.run_number }}
-        files: PocketbookCompanion.app
+        files: build/calibre-companion.app
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
