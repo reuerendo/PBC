@@ -18,38 +18,26 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y git build-essential wget unzip
+        sudo apt-get install -y git build-essential cmake
     
-    - name: Download and setup PocketBook SDK
+    - name: Clone PocketBook SDK
       run: |
-        mkdir -p SDK
-        cd SDK
-        # Download the SDK archive
-        wget http://ftp.obreey.com/SDK/SDK_6.3.0.zip
-        unzip -q SDK_6.3.0.zip
-        # Verify the structure
-        ls -la
-        ls -la SDK_6.3.0/ || true
-        ls -la SDK_6.3.0/SDK-B288/ || true
-    
-    - name: Setup SDK environment
-      run: |
-        # Create symbolic links for compatibility
-        sudo ln -sf /usr/lib/x86_64-linux-gnu/libmpfr.so.6 /usr/lib/x86_64-linux-gnu/libmpfr.so.4 || true
-        sudo ln -sf /usr/lib/x86_64-linux-gnu/libgmp.so.10 /usr/lib/x86_64-linux-gnu/libgmp.so.3 || true
-        sudo ldconfig
+        git clone --depth 1 --branch 5.19 https://github.com/pocketbook/SDK_6.3.0.git SDK_6.3.0
         
-        # Make compiler executable
-        chmod +x SDK/SDK_6.3.0/SDK-B288/bin/arm-obreey-linux-gnueabi-gcc || true
-        chmod +x SDK/SDK_6.3.0/SDK-B288/bin/arm-obreey-linux-gnueabi-g++ || true
-        chmod +x SDK/SDK_6.3.0/SDK-B288/bin/arm-obreey-linux-gnueabi-strip || true
-    
     - name: Verify SDK structure
       run: |
         echo "=== SDK Structure ==="
-        find SDK -name "arm-obreey-linux-gnueabi-gcc" || echo "Compiler not found!"
-        echo "=== Checking toolchain file expectations ==="
-        cat toolchain.cmake
+        ls -la SDK_6.3.0/
+        ls -la SDK_6.3.0/SDK-B288/ || echo "SDK-B288 not found!"
+        ls -la SDK_6.3.0/SDK-B288/bin/ || echo "bin directory not found!"
+        test -f SDK_6.3.0/SDK-B288/share/cmake/arm_conf.cmake && echo "Toolchain file found!" || echo "Toolchain file NOT found!"
+    
+    - name: Run SDK setup script
+      run: |
+        cd SDK_6.3.0/SDK-B288/bin
+        chmod +x update_path.sh
+        ./update_path.sh
+        cd ../../..
     
     - name: Create build directory
       run: mkdir -p build
@@ -58,14 +46,13 @@ jobs:
       run: |
         cd build
         cmake .. \
-          -DCMAKE_TOOLCHAIN_FILE=../toolchain.cmake \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_VERBOSE_MAKEFILE=ON
+          -DCMAKE_TOOLCHAIN_FILE=../SDK_6.3.0/SDK-B288/share/cmake/arm_conf.cmake \
+          -DCMAKE_BUILD_TYPE=Release
     
     - name: Build
       run: |
         cd build
-        cmake --build . --config Release --verbose
+        cmake --build . --config Release
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
