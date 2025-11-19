@@ -18,17 +18,20 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y wget tar
+        sudo apt-get install -y git build-essential
     
     - name: Download and Setup PocketBook SDK
       run: |
-        # Download SDK from alternative source
-        wget -O /tmp/sdk.tar.gz https://github.com/blchinezu/pocketbook-sdk/raw/master/SDK-B288/SDK-gcc-4.9.2-glibc-2.20-arm-v7a-cortex-a8.tar.gz || \
-        wget -O /tmp/sdk.tar.gz https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/pocketbook-free/SDK-gcc-4.9.2-glibc-2.20-arm-v7a-cortex-a8.tar.gz
+        # Clone official SDK repository
+        git clone --depth 1 --branch 5.19 https://github.com/pocketbook/SDK_6.3.0.git /tmp/SDK_6.3.0
         
-        # Extract SDK
-        sudo tar -xzf /tmp/sdk.tar.gz -C /
+        # Copy SDK-B288 to system directories
+        sudo cp -r /tmp/SDK_6.3.0/SDK-B288/* /usr/
         
+        # Verify installation
+        ls -la /usr/bin/arm-obreey-linux-gnueabi-gcc || echo "GCC not found"
+        ls -la /usr/arm-obreey-linux-gnueabi/sysroot/usr/include/inkview.h || echo "inkview.h not found"
+    
     - name: Build application
       run: |
         /usr/bin/arm-obreey-linux-gnueabi-gcc \
