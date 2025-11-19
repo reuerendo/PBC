@@ -1,28 +1,53 @@
-# Build artifacts
+# Compiled Object files
 *.o
+*.obj
+
+# Compiled Application
 *.app
 *.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
 *.a
+*.la
+*.lo
+
+# Shared objects
+*.dll
 *.so
+*.so.*
+*.dylib
 
-# SDK directories (don't commit SDK files)
-pocketbook-sdk/
-arm-toolchain/
-SDK*/
+# Executables
+*.exe
+*.out
 
-# IDE and editor files
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# SDK files (if downloaded locally)
+SDK_*/
+*.tar.gz
+*.zip
+
+# Editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+
+# OS files
 .DS_Store
+Thumbs.db
 
-# Backup files
-*.bak
-*.tmp
-*.log
-
-# Distribution
-dist/
+# Build directories
 build/
+dist/
