@@ -1,20 +1,25 @@
 # Makefile for Pocketbook Companion application
 
 # Application name
-TARGET = PocketbookCompanion.app
+TARGET = calibre-companion.app
 
-# SDK paths
-SDK_PATH ?= /usr/arm-obreey-linux-gnueabi/sysroot
-TOOLCHAIN_PATH ?= /usr/bin
+# SDK paths - укажите путь к вашему SDK
+SDK_ROOT ?= $(HOME)/SDK_6.3.0/SDK-B288
+TOOLCHAIN_PREFIX = arm-obreey-linux-gnueabi
+
+# Check if SDK exists
+ifeq ($(wildcard $(SDK_ROOT)),)
+    $(error SDK not found at $(SDK_ROOT). Please clone it: git clone --depth 1 --branch 5.19 https://github.com/pocketbook/SDK_6.3.0.git $(HOME)/SDK_6.3.0)
+endif
 
 # Compiler settings
-CC = $(TOOLCHAIN_PATH)/arm-obreey-linux-gnueabi-gcc
-CXX = $(TOOLCHAIN_PATH)/arm-obreey-linux-gnueabi-g++
-STRIP = $(TOOLCHAIN_PATH)/arm-obreey-linux-gnueabi-strip
+CC = $(SDK_ROOT)/bin/$(TOOLCHAIN_PREFIX)-gcc
+STRIP = $(SDK_ROOT)/bin/$(TOOLCHAIN_PREFIX)-strip
+SYSROOT = $(SDK_ROOT)/$(TOOLCHAIN_PREFIX)/sysroot
 
 # Compiler flags
-CFLAGS = -Wall -O2 -I$(SDK_PATH)/usr/include
-LDFLAGS = -L$(SDK_PATH)/usr/lib -linkview -lfreetype -lz -lpthread
+CFLAGS = -Wall -O2 --sysroot=$(SYSROOT) -I$(SYSROOT)/usr/include
+LDFLAGS = --sysroot=$(SYSROOT) -L$(SYSROOT)/usr/lib -linkview
 
 # Source files
 SOURCES = main.c
@@ -34,6 +39,6 @@ clean:
 	rm -f $(OBJECTS) $(TARGET)
 
 install: $(TARGET)
-	@echo "Copy $(TARGET) to your PocketBook device"
+	@echo "Copy $(TARGET) to your PocketBook device's /applications folder"
 
 .PHONY: all clean install
