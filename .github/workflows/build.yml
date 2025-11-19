@@ -15,11 +15,31 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Build using Docker SDK
+    - name: Install dependencies
       run: |
-        docker run --rm -v $PWD:/src -w /src \
-          ghcr.io/pocketbook/sdk:6.3.0 \
-          sh -c "arm-obreey-linux-gnueabi-gcc -Wall -O2 -I/usr/arm-obreey-linux-gnueabi/sysroot/usr/include main.c -o PocketbookCompanion.app -L/usr/arm-obreey-linux-gnueabi/sysroot/usr/lib -linkview -lfreetype -lz -lpthread && arm-obreey-linux-gnueabi-strip PocketbookCompanion.app"
+        sudo apt-get update
+        sudo apt-get install -y wget tar
+    
+    - name: Download and Setup PocketBook SDK
+      run: |
+        # Download SDK from alternative source
+        wget -O /tmp/sdk.tar.gz https://github.com/blchinezu/pocketbook-sdk/raw/master/SDK-B288/SDK-gcc-4.9.2-glibc-2.20-arm-v7a-cortex-a8.tar.gz || \
+        wget -O /tmp/sdk.tar.gz https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/pocketbook-free/SDK-gcc-4.9.2-glibc-2.20-arm-v7a-cortex-a8.tar.gz
+        
+        # Extract SDK
+        sudo tar -xzf /tmp/sdk.tar.gz -C /
+        
+    - name: Build application
+      run: |
+        /usr/bin/arm-obreey-linux-gnueabi-gcc \
+          -Wall -O2 \
+          -I/usr/arm-obreey-linux-gnueabi/sysroot/usr/include \
+          main.c \
+          -o PocketbookCompanion.app \
+          -L/usr/arm-obreey-linux-gnueabi/sysroot/usr/lib \
+          -linkview -lfreetype -lz -lpthread
+        
+        /usr/bin/arm-obreey-linux-gnueabi-strip PocketbookCompanion.app
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
