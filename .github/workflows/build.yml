@@ -12,16 +12,19 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4  # Обновлено до v4
+      uses: actions/checkout@v4
 
-    - name: Build with Docker
-      # Используем образ с SDK. Если возникнут проблемы с prodoomman,
-      # можно попробовать официальные или альтернативные образы, но этот самый популярный.
+    - name: Build Docker Image
+      # Собираем образ локально, используя наш новый Dockerfile
+      run: docker build -t my-pb-sdk .
+
+    - name: Compile App
+      # Запускаем компиляцию внутри созданного образа
       run: |
-        docker run --rm -v ${{ github.workspace }}:/app -w /app prodoomman/pb-sdk-docker:latest make
+        docker run --rm -v ${{ github.workspace }}:/app my-pb-sdk make
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v4  # ОБНОВЛЕНО: v3 -> v4
+      uses: actions/upload-artifact@v4
       with:
         name: PocketBookCompanion
         path: pb_companion.app
