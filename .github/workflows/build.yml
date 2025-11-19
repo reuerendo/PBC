@@ -11,15 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v4  # Обновлено до v4
 
     - name: Build with Docker
-      # Используем популярный образ с SDK для PocketBook
+      # Используем образ с SDK. Если возникнут проблемы с prodoomman,
+      # можно попробовать официальные или альтернативные образы, но этот самый популярный.
       run: |
         docker run --rm -v ${{ github.workspace }}:/app -w /app prodoomman/pb-sdk-docker:latest make
 
     - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  # ОБНОВЛЕНО: v3 -> v4
       with:
         name: PocketBookCompanion
         path: pb_companion.app
+        overwrite: true
