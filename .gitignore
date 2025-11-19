@@ -32,7 +32,8 @@
 *.idb
 *.pdb
 
-# SDK files (if downloaded locally)
+# SDK files (downloaded locally)
+SDK_6.3.0/
 SDK_*/
 *.tar.gz
 *.zip
