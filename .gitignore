@@ -1,0 +1,28 @@
+# Build artifacts
+*.o
+*.app
+*.elf
+*.a
+*.so
+
+# SDK directories (don't commit SDK files)
+pocketbook-sdk/
+arm-toolchain/
+SDK*/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Backup files
+*.bak
+*.tmp
+*.log
+
+# Distribution
+dist/
+build/
