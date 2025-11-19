@@ -1,70 +1,25 @@
-name: Build PocketBook Application
+name: Build PocketBook App
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Install dependencies
+    - uses: actions/checkout@v3
+
+    - name: Build with Docker
+      # Используем популярный образ с SDK для PocketBook
       run: |
-        sudo apt-get update
-        sudo apt-get install -y git build-essential cmake
-    
-    - name: Clone PocketBook SDK
-      run: |
-        git clone --depth 1 --branch 5.19 https://github.com/pocketbook/SDK_6.3.0.git SDK_6.3.0
-        
-    - name: Verify SDK structure
-      run: |
-        echo "=== SDK Structure ==="
-        ls -la SDK_6.3.0/
-        ls -la SDK_6.3.0/SDK-B288/ || echo "SDK-B288 not found!"
-        ls -la SDK_6.3.0/SDK-B288/bin/ || echo "bin directory not found!"
-        test -f SDK_6.3.0/SDK-B288/share/cmake/arm_conf.cmake && echo "Toolchain file found!" || echo "Toolchain file NOT found!"
-    
-    - name: Run SDK setup script
-      run: |
-        cd SDK_6.3.0/SDK-B288/bin
-        chmod +x update_path.sh
-        ./update_path.sh
-        cd ../../..
-    
-    - name: Create build directory
-      run: mkdir -p build
-    
-    - name: Configure CMake
-      run: |
-        cd build
-        cmake .. \
-          -DCMAKE_TOOLCHAIN_FILE=../SDK_6.3.0/SDK-B288/share/cmake/arm_conf.cmake \
-          -DCMAKE_BUILD_TYPE=Release
-    
-    - name: Build
-      run: |
-        cd build
-        cmake --build . --config Release
-    
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
+        docker run --rm -v ${{ github.workspace }}:/app -w /app prodoomman/pb-sdk-docker:latest make
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
       with:
-        name: calibre-companion
-        path: build/calibre-companion.app
-        if-no-files-found: error
-        
-    - name: Create release on tag
-      if: startsWith(github.ref, 'refs/tags/')
-      uses: softprops/action-gh-release@v2
-      with:
-        files: build/calibre-companion.app
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        name: PocketBookCompanion
+        path: pb_companion.app
