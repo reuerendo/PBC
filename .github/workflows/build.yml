@@ -15,25 +15,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Install dependencies
+    - name: Build using Docker SDK
       run: |
-        sudo apt-get update
-        sudo apt-get install -y git tar
-    
-    - name: Download PocketBook SDK
-      run: |
-        git clone --depth 1 --branch 5.19 https://github.com/pocketbook/SDK_6.3.0.git /tmp/SDK_6.3.0
-        
-    - name: Setup SDK
-      run: |
-        cd /tmp/SDK_6.3.0/SDK-B288
-        sudo tar -xzf SDK-gcc-*.tar.gz -C /
-        
-    - name: Build application
-      run: |
-        export SDK_PATH=/usr/arm-obreey-linux-gnueabi/sysroot
-        export TOOLCHAIN_PATH=/usr/bin
-        make
+        docker run --rm -v $PWD:/src -w /src \
+          ghcr.io/pocketbook/sdk:6.3.0 \
+          sh -c "arm-obreey-linux-gnueabi-gcc -Wall -O2 -I/usr/arm-obreey-linux-gnueabi/sysroot/usr/include main.c -o PocketbookCompanion.app -L/usr/arm-obreey-linux-gnueabi/sysroot/usr/lib -linkview -lfreetype -lz -lpthread && arm-obreey-linux-gnueabi-strip PocketbookCompanion.app"
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
