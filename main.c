@@ -126,10 +126,7 @@ void exit_application() {
 
 // Application entry point
 int main(int argc, char *argv[]) {
-    // Open screen and set event handler
-    OpenScreen();
-    SetEventHandler(main_handler);
-    
-    // Start the main event loop (automatically handled by SDK)
+    // Initialize and start the main event loop
+    InkViewMain(main_handler);
     return 0;
 }
