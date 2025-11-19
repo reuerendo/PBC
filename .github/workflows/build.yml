@@ -14,14 +14,11 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Build Docker Image
-      # Собираем образ локально, используя наш новый Dockerfile
-      run: docker build -t my-pb-sdk .
-
-    - name: Compile App
-      # Запускаем компиляцию внутри созданного образа
+    - name: Compile App using Community Docker
+      # Используем проверенный образ pazos/pocketbook-docker-sdk
+      # Он уже содержит arm-obreey-linux-gnueabi-gcc и make
       run: |
-        docker run --rm -v ${{ github.workspace }}:/app my-pb-sdk make
+        docker run --rm -v ${{ github.workspace }}:/app -w /app pazos/pocketbook-docker-sdk:latest make
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
